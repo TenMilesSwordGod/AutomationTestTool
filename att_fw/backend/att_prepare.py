@@ -3,7 +3,7 @@ from datetime import datetime
 from att_fw import __att_version__
 from att_fw.backend.att_cli_configs import ATTCLIConfig
 from att_testlib.base.basic_utils import AttLogger, CommsLib
-from att_test_scripts.local_tools.sqlite.sqlite_steps import SQLiteDB
+from att_test_scripts.local_tools.sqlite.sqlite_steps import SQLiteDB, sqlite3
 
 
 class ATT_Prepare(AttLogger):
@@ -22,9 +22,9 @@ class ATT_Prepare(AttLogger):
         self.rerun = rerun
         self.component_parameter: dict = component_parameter
         self.optional_parameter: dict = optional_parameter
+        self.current_time = CommsLib.transform_date_to_att_standard(datetime.now())
 
     def generate_campaign_id(self):
-        self.current_time = CommsLib.transform_date_to_att_standard(datetime.now())
         self.logger.debug("current time: {}".format(self.current_time))
 
         return CommsLib.calculate_md5(str(self.current_time))
@@ -73,6 +73,19 @@ class ATT_Prepare(AttLogger):
                 config_db_instance.insert_record(table_name=ATTCLIConfig.CAMPAIGN_TABLE,
                                                  values=(self.campaign_id, str(self.optional_parameter),
                                                          self.current_time, None, None, None, None, None, None))
+            else:
+                if res:= config_db_instance.select_records(table_name=ATTCLIConfig.CAMPAIGN_TABLE,
+                                                        condition="campaign_id='{}'".format(self.campaign_id)):
+                    self.logger.info("found existed campaign id: {}".format(self.campaign_id))
+                    self.logger.debug(res)
+                else:
+                    self.logger.info("campaign id: {} not found in db! start to create a new one".format(
+                        self.campaign_id))
+                    config_db_instance.insert_record(table_name=ATTCLIConfig.CAMPAIGN_TABLE,
+                                                     values=(self.campaign_id, str(self.optional_parameter),
+                                                             self.current_time, None, None, None, None, None, None))
+        except sqlite3.IntegrityError as e:
+            raise Exception(f"meet error:{str(e)}, because of campaign_id has been existed")
         finally:
             config_db_instance.close()
 
@@ -92,5 +105,6 @@ class ATT_Prepare(AttLogger):
 if __name__ == "__main__":
     att = ATT_Prepare(test_campaign="LoginTests", optional_parameter={"audio_name": "test.mp3",
                                                                       "audio_path": "/data/media/10",
-                                                                      "dut_ip": "192.168.0.2"})
+                                                                      "dut_ip": "192.168.0.2",},
+                      campaign_id="5de29102023eca38b55b3e2cd7622269ce", rerun=True)
     att.start_up()
