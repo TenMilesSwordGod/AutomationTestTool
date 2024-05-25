@@ -1,0 +1,96 @@
+from datetime import datetime
+
+from att_fw import __att_version__
+from att_fw.backend.att_cli_configs import ATTCLIConfig
+from att_testlib.base.basic_utils import AttLogger, CommsLib
+from att_test_scripts.local_tools.sqlite.sqlite_steps import SQLiteDB
+
+
+class ATT_Prepare(AttLogger):
+    def __init__(self, test_campaign, test_bench_config=ATTCLIConfig.DEFAULT_BENCH_CONFIG,
+                 campaign_id=None, test_case=None,
+                 component_parameter=None, optional_parameter=None,
+                 user=None, email="example@example.com", rerun=False,
+                 **kwargs):
+        super().__init__()
+        self.test_campaign = test_campaign
+        self.test_bench_config = test_bench_config,
+        self.user = user
+        self.email = email
+        self.campaign_id = campaign_id
+        self.test_case = test_case
+        self.rerun = rerun
+        self.component_parameter: dict = component_parameter
+        self.optional_parameter: dict = optional_parameter
+
+    def generate_campaign_id(self):
+        self.current_time = CommsLib.transform_date_to_att_standard(datetime.now())
+        self.logger.debug("current time: {}".format(self.current_time))
+
+        return CommsLib.calculate_md5(str(self.current_time))
+
+    def search_test_campaign(self):
+        pass
+
+    def search_test_bench_config(self):
+        pass
+
+    def update_optional_parameter_to_db(self, db_instance: SQLiteDB):
+        for idx, (attrib, value) in enumerate(self.optional_parameter.items()):
+            db_instance.insert_record(table_name=ATTCLIConfig.DEFAULT_TESTLIB_CONFIG_TABLE,
+                                      values=(idx, attrib, value))
+
+    def cache_sql_setup(self):
+        config_db_instance = SQLiteDB(db_name=ATTCLIConfig.CACHE_DB_PATH)
+        self.logger.debug("start to set db.")
+        try:
+            if not config_db_instance.table_exists(table_name=ATTCLIConfig.CAMPAIGN_TABLE):
+                config_db_instance.create_table(table_name=ATTCLIConfig.CAMPAIGN_TABLE,
+                                                columns=ATTCLIConfig.CAMPAIGN_TABLE_COLUMNS)
+
+            if not config_db_instance.table_exists(table_name=ATTCLIConfig.TESTCASE_TABLE):
+                config_db_instance.create_table(table_name=ATTCLIConfig.TESTCASE_TABLE,
+                                                columns=ATTCLIConfig.TESTCASE_TABLE_COLUMNS)
+
+            # create a tmp table for current 
+            config_db_instance.create_table(table_name=ATTCLIConfig.DEFAULT_TESTLIB_CONFIG_TABLE,
+                                            columns=ATTCLIConfig.TESTLIB_TABLE_COLUMNS)
+
+            config_db_instance.truncate_table(table_name=ATTCLIConfig.DEFAULT_TESTLIB_CONFIG_TABLE)
+
+            # config_db_instance.create_table(table_name=ATTCLIConfig.DEFAULT_EQUIPMENT_CONFIG_TABLE,
+            #                                 columns=ATTCLIConfig.EQUIPMENT_TABLE_COLUMNS)
+            # config_db_instance.truncate_table(table_name=ATTCLIConfig.DEFAULT_TESTLIB_CONFIG_TABLE)
+
+            if self.optional_parameter:
+                self.update_optional_parameter_to_db(config_db_instance)
+
+            if self.component_parameter:
+                pass
+
+            # create a new record for storage campaign
+            if not self.rerun:
+                config_db_instance.insert_record(table_name=ATTCLIConfig.CAMPAIGN_TABLE,
+                                                 values=(self.campaign_id, str(self.optional_parameter),
+                                                         self.current_time, None, None, None, None, None, None))
+        finally:
+            config_db_instance.close()
+
+    def start_up(self):
+        self.logger.info("=====================================================")
+        self.logger.info("******** start to run Automation Test Tool *********")
+        self.logger.info("********   ATT Version: {}              ********".format(__att_version__))
+        self.logger.info("=====================================================")
+        # self.logger.info(self.generate_campaign_id())
+        if not self.campaign_id:
+            self.logger.info("No exist campaign id, start to create new one")
+            self.campaign_id = self.generate_campaign_id()
+        self.logger.info("current campaign id: {}".format(self.campaign_id))
+        self.cache_sql_setup()
+ 
+
+if __name__ == "__main__":
+    att = ATT_Prepare(test_campaign="LoginTests", optional_parameter={"audio_name": "test.mp3",
+                                                                      "audio_path": "/data/media/10",
+                                                                      "dut_ip": "192.168.0.2"})
+    att.start_up()

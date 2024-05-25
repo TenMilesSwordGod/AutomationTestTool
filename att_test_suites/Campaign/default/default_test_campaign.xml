@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Testcampaign>
+    <platform>
+        <km_emulator value="false"/>
+        <web_api value="true"/>
+        <targetpassrate value="100"/>
+        <!-- <ContinuousExecSkipSetupTeardown value="true"/> -->
+    </platform>
+    <Testcases>
+        <Testcase path='django_first/login/TestLoginCorrectUsernamePassword.xml'/>
+        <Testcase path='django_first/login/TestLoginIncorrectUsernamePassword.xml'/>
+    </Testcases>
+</Testcampaign>
