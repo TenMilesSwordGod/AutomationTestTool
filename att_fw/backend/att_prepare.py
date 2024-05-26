@@ -44,29 +44,34 @@ class ATT_Prepare(AttLogger):
         config_db_instance = SQLiteDB(db_name=ATTCLIConfig.CACHE_DB_PATH)
         self.logger.debug("start to set db.")
         try:
+            # check db table
+            # storage campaign info
             if not config_db_instance.table_exists(table_name=ATTCLIConfig.CAMPAIGN_TABLE):
                 config_db_instance.create_table(table_name=ATTCLIConfig.CAMPAIGN_TABLE,
                                                 columns=ATTCLIConfig.CAMPAIGN_TABLE_COLUMNS)
 
+            # storage testcase details
             if not config_db_instance.table_exists(table_name=ATTCLIConfig.TESTCASE_TABLE):
                 config_db_instance.create_table(table_name=ATTCLIConfig.TESTCASE_TABLE,
                                                 columns=ATTCLIConfig.TESTCASE_TABLE_COLUMNS)
+
+            # storage system details
+            if not config_db_instance.table_exists(table_name=ATTCLIConfig.ATT_SYSTEM_TABLE):
+                config_db_instance.create_table(table_name=ATTCLIConfig.ATT_SYSTEM_TABLE,
+                                                columns=ATTCLIConfig.ATT_SYSTEM_TABLE_COLUMNS)
 
             # create a tmp table for current 
             config_db_instance.create_table(table_name=ATTCLIConfig.DEFAULT_TESTLIB_CONFIG_TABLE,
                                             columns=ATTCLIConfig.TESTLIB_TABLE_COLUMNS)
 
+            # clear the db env
+            # clear the testlib config table
             config_db_instance.truncate_table(table_name=ATTCLIConfig.DEFAULT_TESTLIB_CONFIG_TABLE)
-
-            # config_db_instance.create_table(table_name=ATTCLIConfig.DEFAULT_EQUIPMENT_CONFIG_TABLE,
-            #                                 columns=ATTCLIConfig.EQUIPMENT_TABLE_COLUMNS)
-            # config_db_instance.truncate_table(table_name=ATTCLIConfig.DEFAULT_TESTLIB_CONFIG_TABLE)
+            # clear the system global environment table
+            config_db_instance.truncate_table(table_name=ATTCLIConfig.ATT_SYSTEM_TABLE)
 
             if self.optional_parameter:
                 self.update_optional_parameter_to_db(config_db_instance)
-
-            if self.component_parameter:
-                pass
 
             # create a new record for storage campaign
             if not self.rerun:
@@ -84,6 +89,12 @@ class ATT_Prepare(AttLogger):
                     config_db_instance.insert_record(table_name=ATTCLIConfig.CAMPAIGN_TABLE,
                                                      values=(self.campaign_id, str(self.optional_parameter),
                                                              self.current_time, None, None, None, None, None, None))
+            # load system global parameters
+            # like [if configurate the adb serial, 
+            #       serial should be a common argument for testlib and can be used by self,
+            #       and these arguments also used by self.arguments.serial
+            #       for example in testlib steps:
+            #           when init one step class, self.arguments will found global parameters from db: att_system
         except sqlite3.IntegrityError as e:
             raise Exception(f"meet error:{str(e)}, because of campaign_id has been existed")
         finally:

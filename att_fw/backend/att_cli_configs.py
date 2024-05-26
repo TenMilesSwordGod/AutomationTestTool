@@ -31,6 +31,11 @@ class ATTCLIConfig:
     # bench
     DEFAULT_BENCH_CONFIG = "default_bench_config.xml"
 
+    # ATT System
+    # for system global parameters
+    ATT_SYSTEM_TABLE = "att_system_table"
+    ATT_SYSTEM_TABLE_COLUMNS = "attr_name TINYTEXT PRIMARY KEY, " + "attr_value TINYTEXT" 
+
 
 if __name__ == "__main__":
     print(ATTCLIConfig.TESTCASE_TABLE_COLUMNS)

@@ -5,13 +5,14 @@ import typer
 
 from att_fw.backend.att_cli_utils import CallBackFunctions
 from att_fw.backend.att_prepare import ATT_Prepare
+from att_fw import __att_version__
 
 
 app = typer.Typer(no_args_is_help=True)
 
 
 @app.command()
-def run_case(
+def run(
     campaign_name: Annotated[Optional[str], typer.Option('-c', '--campaign-name',
                                                          help="select test campaign to run",
                                                          callback=CallBackFunctions.campaign_name_callback)
@@ -50,6 +51,11 @@ def run_case(
     ATT_Prepare()
 
 
+@app.command()
+def version():
+    print(__att_version__)
+
 
 if __name__ == "__main__":
-    typer.run(run_case)
+    # typer.run(run_case)
+    app()
