@@ -3,7 +3,7 @@ from typing import Any, NoReturn
 
 from loguru import logger as lg
 
-from att_testlib.base.basic_utils import AttTestError
+from att_testlib.base.basic_errors import AttTestError
 from att_testlib.base.basic_utils import AttLogger
 
 
@@ -36,6 +36,8 @@ class Base(AttLogger):
         self.critical = critical
         self.logger = logger
         self.response = StepResponse()
+        # test phone
+        self.serial = None
 
     @abstractmethod
     def do(self) -> NoReturn:

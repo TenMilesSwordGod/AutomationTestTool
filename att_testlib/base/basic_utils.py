@@ -10,6 +10,8 @@ import loguru
 class AttLogger:
     def __init__(self):
         self.logger = loguru.logger
+        # self.logger.remove()
+        # self.logger.add(sink=,format="{time} {level} {message}", colorize=True)
 
 
 class CommsLib:
