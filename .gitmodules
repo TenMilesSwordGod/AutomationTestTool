@@ -1,0 +1,12 @@
+[submodule "att_fw"]
+	path = att_fw
+	url = https://github.com/TenMilesSwordGod/AutomationTestTool.att_fw.git
+[submodule "att_test_scripts"]
+	path = att_test_scripts
+	url = https://github.com/TenMilesSwordGod/AutomationTestTool.att_test_scripts.git
+[submodule "att_test_suites"]
+	path = att_test_suites
+	url = https://github.com/TenMilesSwordGod/AutomationTestTool.att_test_suites.git
+[submodule "att_testlib"]
+	path = att_testlib
+	url = https://github.com/TenMilesSwordGod/AutomationTestTool.att_testlib.git
