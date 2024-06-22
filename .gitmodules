@@ -10,3 +10,6 @@
 [submodule "att_testlib"]
 	path = att_testlib
 	url = https://github.com/TenMilesSwordGod/AutomationTestTool.att_testlib.git
+[submodule "att_web"]
+	path = att_web
+	url = https://github.com/TenMilesSwordGod/AutomationTestTool.att_web.git
