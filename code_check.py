@@ -15,6 +15,7 @@ def count_lines_in_folder(folder_path, extensions=('.py',)):
                             total_lines += 1
     return total_lines
 
+
 cound_folder = ['att_fw', 'att_test_scripts', 'att_test_suites', 'att_testlib']
 total_lines = 0
 
